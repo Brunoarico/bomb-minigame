@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <math.h>
-
+#include <LiquidCrystal.h>
+ 
 typedef struct {
   int x;
   int y;
@@ -19,6 +20,8 @@ typedef struct {
 
 const static int MPU = 0x68;
 timer_control time_fuse;
+int last_print = 0;
+LiquidCrystal lcd(2, 4, 5, 6, 11, 12);
 
 accelerometer_values get_accelerometer_values() {
   accelerometer_values values;
@@ -92,14 +95,30 @@ void timer_begin(unsigned long int end_value) {
 
 int timer_end_check() {
   time_fuse.now_time = time_fuse.end_time - (millis()-time_fuse.begin_time);
-  if(time_fuse.now_time < 0) return true;
-  else return false;
+  if(time_fuse.now_time <= 0) return true;
+  else {
+    time_parser();
+    return false;
+  }
 }
 
+void time_parser() {
+  if (millis() -last_print > 1000){
+    last_print = millis();
+    lcd.clear();
+    int time_raw = time_fuse.now_time/1000;
+    int minutes = time_raw/60;
+    int seconds = time_raw%60;
+    lcd.print(minutes);
+    lcd.print(":");
+    lcd.println(seconds);
+  }
+}
 
 void setup() {
   Serial.begin(9600);
   // Initializes MPU
+  lcd.begin(16, 2);
   Wire.begin();
   Wire.beginTransmission(MPU);
   Wire.write(0x6B); Wire.write(0);
@@ -109,6 +128,8 @@ void setup() {
     Serial.write("WARNING: Accelerometer not found.");
   }
   pinMode(3, OUTPUT);
+  lcd.setCursor(3, 1);
+  lcd.print(" LCD 16x2");
 }
 
 void defuse() {
@@ -120,7 +141,6 @@ void loop() {
        red    = red_light(),
        green  = green_light(),
        yellow = yellow_light();
-
   digitalWrite(3, blue ? HIGH : LOW);
 
   if (blue_light()
