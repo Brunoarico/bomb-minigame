@@ -8,4 +8,10 @@ A5 -> accelerometers' SCL
 accelerometers' GND -> GND
 
 D3 -> Blue LED's positive leg
+D7 -> Green LED's positive leg
+D8 -> Wire to GND
+D9 -> Wire to GND
+D10 -> Wire to GND
+D11 -> Wire to GND
+
 LED's GNDs -> GND
